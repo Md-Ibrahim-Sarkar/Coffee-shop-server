@@ -24,9 +24,55 @@ async function run() {
   try {
     const database = client.db('coffee-table');
     const coffees = database.collection('coffees');
+    const usersCatection = database.collection('users');
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
+
+    // users
+
+    // create a new user
+    app.post('/users', async (req, res) => {
+      const userData = req.body;
+      const data = await usersCatection.insertOne(userData);
+      res.send(data);
+    });
+
+    //  get all users
+
+    app.get('/users', async (req, res) => {
+      const usersData = usersCatection.find();
+      const data = await usersData.toArray();
+      res.send(data);
+    });
+
+    // delete user
+    app.delete('/user/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCatection.deleteOne(query);
+      res.send(result);
+    });
+
+    // upDate user
+
+    app.patch('/users', async (req, res) => {
+      const user = req.body;
+      const email = user.email;
+      console.log(email);
+
+      const query = { email };
+      const updateData = {
+        $set: {
+          lastLogInAt: user.lastLogin,
+        },
+      };
+
+      const result = await usersCatection.updateOne(query, updateData);
+      res.send(result);
+    });
+
+    // Products
 
     // All product geting
     app.get('/coffees', async (req, res) => {
@@ -85,7 +131,7 @@ async function run() {
       res.send(result);
     });
 
-    await client.db('admin').command({ ping: 1 });
+    // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
